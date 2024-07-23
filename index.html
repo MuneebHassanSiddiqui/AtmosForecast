@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Weather Dashboard || MHS </title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+  <h1>Weather Dashboard</h1>
+  <div class="container">
+    <div class="weather-input">
+      <h3>Enter a City Name</h3>
+      <input class="city-input" type="text" placeholder="E.g., New York, London, Tokyo">
+      <button class="search-btn">Search</button>
+      <div class="separator"></div>
+      <button class="location-btn">Use Current Location</button>
+    </div>
+    <div class="weather-data">
+      <div class='current-weather'>
+        <div class='details'>
+          <h2>(_________ ) (__________)</h2>
+          <h6>Temperature : (___)°C</h6>
+          <h6>(_____) M/S</h6>
+          <h6>Humidity:(____)%</h6>
+        </div>
+      </div>
+
+      <div class="days-forecast">
+        <h2>5-Day Forecast</h2>
+        <ul class="weather-cards">
+          <li class="card">
+            <h3>( ______ )</h3>
+            <h6>Temp: __C</h6>
+            <h6>Wind: __ M/S</h6>
+            <h6>Humidity: __%</h6>
+          </li>
+          <li class="card">
+            <h3>( ______ )</h3>
+            <h6>Temp: __C</h6>
+            <h6>Wind: __ M/S</h6>
+            <h6>Humidity: __%</h6>
+          </li>
+          <li class="card">
+            <h3>( ______ )</h3>
+            <h6>Temp: __C</h6>
+            <h6>Wind: __ M/S</h6>
+            <h6>Humidity: __%</h6>
+          </li>
+          <li class="card">
+            <h3>( ______ )</h3>
+            <h6>Temp: __C</h6>
+            <h6>Wind: __ M/S</h6>
+            <h6>Humidity: __%</h6>
+          </li>
+          <li class="card">
+            <h3>( ______ )</h3>
+            <h6>Temp: __C</h6>
+            <h6>Wind: __ M/S</h6>
+            <h6>Humidity: __%</h6>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $(".search-btn").click(function () {
+        var Search_term = $(".city-input").val();
+        var Api_key = '472b5dc7065540e2a421e439858fd194';
+        if (Search_term === '') {
+          $(".weather-data .current-weather .details").html("<p class='error'>Please enter a city Name First✔.</p>");
+          return;
+        }
+        //Current Weather Ajax Call
+        $.ajax({
+          url: "https://api.weatherbit.io/v2.0/current?key=" + Api_key + "&city=" + Search_term,
+          type: "GET",
+          success: function (response) {
+            if (response && response.data && response.data.length > 0) {
+              var data = response.data[0];
+
+              // Check if the city in the API response matches the search term
+              if (data.city_name.toLowerCase() === Search_term.toLowerCase()) {
+                var currentWeatherIcon = "https://www.weatherbit.io/static/img/icons/" + data.weather.icon + ".png";
+                var weatherInfo =
+                  "<h2>" + data.city_name + " (" + data.country_code + ")</h2>" +
+                  "<h6>Temperature: " + data.app_temp + "°C</h6>" +
+                  "<img class='icon' src='" + currentWeatherIcon + "' alt='" + data.weather.description + "'>" +
+                  "<h6>Wind: " + data.wind_spd + " M/S</h6>" +
+                  "<h6>Humidity: " + data.rh + "%</h6>";
+                $(".weather-data .current-weather .details").html(weatherInfo);
+              } else {
+                $(".weather-data .current-weather .details").html("<p class='error'>Please enter correct City Name!.</p>");
+              }
+              $(".city-input").val('');
+            } else {
+              $(".weather-data .current-weather .details").html("<p class='error'>City not found.</p>");
+            }
+          },
+        });
+
+
+        // Forecast AJAX call after current weather is fetched
+        $.ajax({
+          url: "https://api.weatherbit.io/v2.0/forecast/daily?key=" + Api_key + "&city=" + Search_term + "&days=5",
+          type: "GET",
+          success: function (ForecastResponse) {
+            // Check if forecast data exists
+            if (ForecastResponse && ForecastResponse.data && ForecastResponse.data.length > 0) {
+              var Forecast = "";
+              if (ForecastResponse.city_name.toLowerCase() === Search_term.toLowerCase()) {
+
+                // Loop through each day's forecast data
+                ForecastResponse.data.forEach(function (days) {
+                  var weatherIcon = "https://www.weatherbit.io/static/img/icons/" + days.weather.icon + ".png";
+                  Forecast +=
+                    "<li class='card'>" +
+                    "<h3>" + days.datetime + "</h3>" +
+                    "<img class='forecast-icon' src='" + weatherIcon + "' alt='" + days.weather.description + "'>" +
+                    "<h6>Temp: " + days.temp + "°C</h6>" +
+                    "<h6>Wind: " + days.wind_spd + " M/S</h6>" +
+                    "<h6>Humidity: " + days.rh + " %</h6>" +
+                    "</li>";
+                });
+                // Populate the forecast cards
+                $(".days-forecast .weather-cards").html(Forecast);
+              } else {
+                // Handle the case where no forecast data is available
+                $(".days-forecast .weather-cards").html("<li class='card'><h3>No forecast data available</h3></li>");
+              }
+            }
+          }
+
+        })
+
+
+      });
+    });
+  </script>
+</body>
+
+</html>
